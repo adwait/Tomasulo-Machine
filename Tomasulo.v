@@ -11,7 +11,7 @@
 //R-Format: funct7(7)  rs1(5)  rs2(5)  funct3(3)  rd(5)  opcode(7)
 //Load/Stores: Immediate(12)  rs(5)  funct3(3)  rd(5)  opcode(7)
 
-module tomasulo(clk);
+module Tomasulo (clk);
 
 input clk;
 reg stall_flag;
@@ -22,15 +22,28 @@ reg [31:0] memory [0:31];         //Main Memory
 
 integer x;
 
+reg [7:0] counter;
+
 initial 
 begin
-memory[0]=32'h00012183;           //Instructions stored in Main Memory
-memory[1]=32'h0241c133;
-memory[2]=32'h026280b3;
-memory[3]=32'h008381b3;
-memory[4]=32'h023080b3;
-memory[5]=32'h40508233;
-memory[6]=32'h002200b3;    
+    counter = 0;
+
+    memory[0] = 32'h002200b3;
+    memory[1] = 32'h002200b3;
+    memory[2] = 32'h002200b3;
+    memory[3] = 32'h002200b3;
+    memory[4] = 32'h002200b3;
+    memory[5] = 32'h002200b3;
+    memory[6] = 32'h002200b3;
+    // 000000000000 00010 010 00011 0000011
+    // memory[0]=32'h00012183;           //Instructions stored in Main Memory
+    // memory[1]=32'h0241c133;
+    // memory[2]=32'h026280b3;
+    // memory[3]=32'h008381b3;
+    // memory[4]=32'h023080b3;
+    // memory[5]=32'h40508233;
+    // 0000000 00010 00100 000 00001 0110011
+    // memory[6]=32'h002200b3;    
 end
 
 initial 
@@ -41,15 +54,26 @@ end
 
 always@(posedge clk)
 begin
-  if(stall_flag==0)
-    begin
-      pr_instr_fetch<=memory[x]; 
-      if(memory[x]!=32'bx)
-         PC<=PC+4;           //****ALARM: PC keeps on incrementing even if new instruction is not being fetched
-      x<=x+1;   
-    end
-  else
-      pr_instr_fetch<=32'bx;  
+    counter <= counter + 1;
+    // TODO: execute the system in a tight loop
+    if(stall_flag==0)
+        begin
+        pr_instr_fetch<=memory[x];
+        Decode_PC<=PC;
+            // if(memory[x]!=32'bx)
+                // info: PC<=PC+4;           //****ALARM: PC keeps on incrementing even if new instruction is not being fetched
+                // x<=x+1;
+            // end
+            if (x != 6) begin
+                PC<=PC+4;
+                x=x+1;
+            end else begin
+                PC<=0;
+                x=0;
+            end
+        end
+    else
+        pr_instr_fetch<=32'bx;  
 end 
 
 //-----------------------------------------------------DECODE STAGE---------------------------------------------------------
@@ -59,8 +83,9 @@ reg [6:0] pr_funct7, pr_opcode;   //pipeline registers for Decode Stage
 reg [4:0] pr_rs1, pr_rs2, pr_rd;
 reg [2:0] pr_funct3;
 reg [11:0] pr_immediate;
+reg [4:0] Decode_PC;
 
-parameter LOAD = 3'b000;
+parameter LOAD = 3'b101;
 parameter ADD = 3'b001;
 parameter SUB = 3'b010;
 parameter MUL = 3'b011;
@@ -90,19 +115,18 @@ begin
     else if ((pr_opcode==7'b0110011) && (pr_funct7==7'b0000001) && (pr_funct3==3'b100))
        pr_instr<=DIV;
     else
-       pr_instr<=3'bxxx;   
-
-   end
+       pr_instr<=3'b000;   
+    end
    
    else
-    pr_instr<=3'bx;
+      pr_instr<=3'b000;
 
 end
 
 //--------------------------------------------------DISPATCH STAGE------------------------------------------------------------------
 
 reg [31:0] Arch_reg [1:32];            //Defining Architectural Registers
-reg [2:0] RAT [1:32];                  //Defining the RAT
+reg [3:0] RAT [1:32];                  //Defining the RAT
 
 reg [2:0] ROB_head_ptr;                //ROB Head Pointer
 reg [2:0] ROB_tail_ptr;                //ROB Tail Pointer
@@ -111,6 +135,7 @@ reg [4:0] ROB_Dest [0:7];
 reg [31:0] ROB_Value [0:7];
 reg ROB_busy [0:7];
 reg ROB_valid[0:7];
+reg [4:0] ROB_PC [0:7];
 
 reg [2:0] RS_Add_Instr [0:3];         //Defining RS_ADD/SUB entries
 reg RS_Add_busy [0:3];
@@ -122,6 +147,8 @@ reg RS_Add_S1_valid [0:3];
 reg [31:0] RS_Add_S2_value [0:3];
 reg RS_Add_S2_valid [0:3];
 reg [1:0] RS_Add_count;
+// TODO: add PCs
+reg [4:0] RS_Add_PC [0:3];
 
 reg [2:0] RS_Mul_Instr [0:3];        //Defining RS_MUL/DIV entri
 reg RS_Mul_busy [0:3];
@@ -133,6 +160,7 @@ reg RS_Mul_S1_valid [0:3];
 reg [31:0] RS_Mul_S2_value [0:3];
 reg RS_Mul_S2_valid [0:3];
 reg [1:0] RS_Mul_count;
+reg [4:0] RS_Mul_PC [0:3];
 
 reg [2:0] LD_ST_Buffer_Instr [0:3];    //Defining Load/Store Buffer entries
 reg LD_ST_Buffer_busy [0:3];
@@ -179,22 +207,22 @@ begin
     RS_Mul_S1_valid [2]=0;      RS_Mul_S2_valid [2]=0;     RS_Mul_busy[2]=0;
     RS_Mul_S1_valid [3]=0;      RS_Mul_S2_valid [3]=0;     RS_Mul_busy[3]=0;
 
-    Arch_reg[1]=32'h0000000c;     RAT[1]=3'bxxx;     
-    Arch_reg[2]=32'h00000010;     RAT[2]=3'bxxx;   
-    Arch_reg[3]=32'h0000002d;     RAT[3]=3'bxxx;     
-    Arch_reg[4]=32'h00000005;     RAT[4]=3'bxxx;     
-    Arch_reg[5]=32'h00000003;     RAT[5]=3'bxxx;    
-    Arch_reg[6]=32'h00000004;     RAT[6]=3'bxxx;     
-    Arch_reg[7]=32'h00000001;     RAT[7]=3'bxxx;
-    Arch_reg[8]=32'h00000002;     RAT[8]=3'bxxx;
-    Arch_reg[9]=32'h00000002;     RAT[9]=3'bxxx;
-    Arch_reg[10]=32'h00000003;    RAT[10]=3'bxxx;
+    Arch_reg[1]=32'h0000000c;     RAT[1]=4'b1000;     
+    Arch_reg[2]=32'h00000010;     RAT[2]=4'b1000;   
+    Arch_reg[3]=32'h0000002d;     RAT[3]=4'b1000;     
+    Arch_reg[4]=32'h00000005;     RAT[4]=4'b1000;     
+    Arch_reg[5]=32'h00000003;     RAT[5]=4'b1000;    
+    Arch_reg[6]=32'h00000004;     RAT[6]=4'b1000;     
+    Arch_reg[7]=32'h00000001;     RAT[7]=4'b1000;
+    Arch_reg[8]=32'h00000002;     RAT[8]=4'b1000;
+    Arch_reg[9]=32'h00000002;     RAT[9]=4'b1000;
+    Arch_reg[10]=32'h00000003;    RAT[10]=4'b1000;
 end
 
 always@(posedge clk)
 begin
     if(ROB_busy[ROB_tail_ptr]==1)
-         stall_flag=1;    //stall
+        stall_flag=1;    //stall
     
     else 
       begin
@@ -205,21 +233,22 @@ begin
            else
              begin   
                ROB_Instr[ROB_tail_ptr]<=pr_instr;
+               ROB_PC[ROB_tail_ptr]<=Decode_PC;
                ROB_Dest[ROB_tail_ptr]<=pr_rd;
                ROB_busy[ROB_tail_ptr]<=1;
                LD_ST_Buffer_Instr[RS_LD_ST_count]<=pr_instr; 
                LD_ST_Buffer_busy[RS_LD_ST_count]<=1'b1; 
                LD_ST_Buffer_Dest_tag[RS_LD_ST_count]<=ROB_tail_ptr;
                LD_ST_Buffer_Offset[RS_LD_ST_count]<=pr_immediate;
-               RAT[pr_rd]<=ROB_tail_ptr; 
-                if(RAT[pr_rs1]===3'bxxx)     //if RAT has no tag, get value from Arch Register
+               RAT[pr_rd]<={1'b0, ROB_tail_ptr}; 
+                if(RAT[pr_rs1] == 4'b1000)     //if RAT has no tag, get value from Arch Register
                  begin
                   LD_ST_Buffer_Source_value[RS_LD_ST_count]<=Arch_reg[pr_rs1]; 
                   LD_ST_Buffer_Source_valid[RS_LD_ST_count]<=1'b1; 
                  end 
                else
                  begin
-                  LD_ST_Buffer_Source_tag[RS_LD_ST_count]<=RAT[pr_rs1]; //if RAT has some tag, get the tag
+                  LD_ST_Buffer_Source_tag[RS_LD_ST_count]<=RAT[pr_rs1][2:0]; //if RAT has some tag, get the tag
                   LD_ST_Buffer_Source_valid[RS_LD_ST_count]<=1'b0;  
                  end  
                ROB_tail_ptr<=ROB_tail_ptr+3'b001;
@@ -233,30 +262,33 @@ begin
            else
              begin
                 ROB_Instr[ROB_tail_ptr]<=pr_instr;
+                ROB_PC[ROB_tail_ptr]<=Decode_PC;
                 ROB_Dest[ROB_tail_ptr]<=pr_rd;
                 ROB_busy[ROB_tail_ptr]<=1;
                 RS_Add_Instr[RS_Add_count]<=pr_instr;
+                RS_Add_PC[RS_Add_count]<=Decode_PC;
                 RS_Add_busy[RS_Add_count]<=1'b1;
                 RS_Add_Dest_tag[RS_Add_count]<=ROB_tail_ptr;
-                RAT[pr_rd]<=ROB_tail_ptr;
-                if(RAT[pr_rs1]===3'bxxx)
+                RAT[pr_rd]<={1'b0, ROB_tail_ptr};
+                if(RAT[pr_rs1]==4'b1000)
                   begin
+                   $display("@%d: RS_Add_S1_value[RS_Add_count]<=Arch_reg[pr_rs1]: %d <= %d and RS_Add_S1_valid: %d ", counter, RS_Add_count, Arch_reg[pr_rs1], RS_Add_S1_valid[RS_Add_count]);
                    RS_Add_S1_value[RS_Add_count]<=Arch_reg[pr_rs1];
                    RS_Add_S1_valid[RS_Add_count]<=1;
                   end
                 else 
                   begin  
-                   RS_Add_S1_tag[RS_Add_count]<=RAT[pr_rs1];
+                   RS_Add_S1_tag[RS_Add_count]<=RAT[pr_rs1][2:0];
                    RS_Add_S1_valid[RS_Add_count]<=1'b0;
                   end 
-                if(RAT[pr_rs2]===3'bxxx)  
+                if(RAT[pr_rs2]==4'b1000)  
                   begin 
                    RS_Add_S2_value[RS_Add_count]<=Arch_reg[pr_rs2];
                    RS_Add_S2_valid[RS_Add_count]<=1;
                   end
                 else 
                   begin  
-                   RS_Add_S2_tag[RS_Add_count]<=RAT[pr_rs2];
+                   RS_Add_S2_tag[RS_Add_count]<=RAT[pr_rs2][2:0];
                    RS_Add_S2_valid[RS_Add_count]<=1'b0;
                   end 
                 ROB_tail_ptr<=ROB_tail_ptr+3'b001;  
@@ -270,30 +302,33 @@ begin
            else
              begin
                 ROB_Instr[ROB_tail_ptr]<=pr_instr;
+                ROB_PC[ROB_tail_ptr]<=Decode_PC;
                 ROB_Dest[ROB_tail_ptr]<=pr_rd;
                 ROB_busy[ROB_tail_ptr]<=1;
                 RS_Add_Instr[RS_Add_count]<=pr_instr;
+                RS_Add_PC[RS_Add_count]<=Decode_PC;
                 RS_Add_busy[RS_Add_count]<=1'b1;
                 RS_Add_Dest_tag[RS_Add_count]<=ROB_tail_ptr;
-                RAT[pr_rd]<=ROB_tail_ptr;
-                if(RAT[pr_rs1]===3'bxxx)
+                RAT[pr_rd]<={1'b0, ROB_tail_ptr};
+                if(RAT[pr_rs1]==4'b1000)
                   begin
                    RS_Add_S1_value[RS_Add_count]<=Arch_reg[pr_rs1];
                    RS_Add_S1_valid[RS_Add_count]<=1;
+                   $display("SUB triggered here");
                   end
                 else 
                   begin  
-                   RS_Add_S1_tag[RS_Add_count]<=RAT[pr_rs1];
+                   RS_Add_S1_tag[RS_Add_count]<=RAT[pr_rs1][2:0];
                    RS_Add_S1_valid[RS_Add_count]<=1'b0;
                   end 
-                if(RAT[pr_rs2]===3'bxxx)  
+                if(RAT[pr_rs2]==4'b1000)  
                   begin 
                    RS_Add_S2_value[RS_Add_count]<=Arch_reg[pr_rs2];
                    RS_Add_S2_valid[RS_Add_count]<=1;
                   end
                 else 
                   begin  
-                   RS_Add_S2_tag[RS_Add_count]<=RAT[pr_rs2];
+                   RS_Add_S2_tag[RS_Add_count]<=RAT[pr_rs2][2:0];
                    RS_Add_S2_valid[RS_Add_count]<=1'b0;
                   end 
                 ROB_tail_ptr<=ROB_tail_ptr+3'b001;  
@@ -307,30 +342,32 @@ begin
            else
              begin
                 ROB_Instr[ROB_tail_ptr]<=pr_instr;
+                ROB_PC[ROB_tail_ptr]<=Decode_PC;
                 ROB_Dest[ROB_tail_ptr]<=pr_rd;
                 ROB_busy[ROB_tail_ptr]<=1;
                 RS_Mul_Instr[RS_Mul_count]<=pr_instr;
+                RS_Mul_PC[RS_Mul_count]<=Decode_PC;
                 RS_Mul_busy[RS_Mul_count]<=1'b1;
                 RS_Mul_Dest_tag[RS_Mul_count]<=ROB_tail_ptr;
-                RAT[pr_rd]<=ROB_tail_ptr;
-                if(RAT[pr_rs1]===3'bxxx)
+                RAT[pr_rd]<={1'b0, ROB_tail_ptr};
+                if(RAT[pr_rs1]==4'b1000)
                   begin
                    RS_Mul_S1_value[RS_Mul_count]<=Arch_reg[pr_rs1];
                    RS_Mul_S1_valid[RS_Mul_count]<=1'b1;
                   end
                 else 
                   begin  
-                   RS_Mul_S1_tag[RS_Mul_count]<=RAT[pr_rs1];
+                   RS_Mul_S1_tag[RS_Mul_count]<=RAT[pr_rs1][2:0];
                    RS_Mul_S1_valid[RS_Mul_count]<=1'b0;
                   end 
-                if(RAT[pr_rs2]===3'bxxx) 
+                if(RAT[pr_rs2]==4'b1000) 
                   begin  
                    RS_Mul_S2_value[RS_Mul_count]<=Arch_reg[pr_rs2];
                    RS_Mul_S2_valid[RS_Mul_count]<=1'b1;
                   end
                 else
                   begin   
-                   RS_Mul_S2_tag[RS_Mul_count]<=RAT[pr_rs2];
+                   RS_Mul_S2_tag[RS_Mul_count]<=RAT[pr_rs2][2:0];
                    RS_Mul_S2_valid[RS_Mul_count]<=1'b0;
                   end
                 ROB_tail_ptr<=ROB_tail_ptr+3'b001;  
@@ -344,30 +381,32 @@ begin
            else
              begin
                 ROB_Instr[ROB_tail_ptr]<=pr_instr;
+                ROB_PC[ROB_tail_ptr]<=Decode_PC;
                 ROB_Dest[ROB_tail_ptr]<=pr_rd;
                 ROB_busy[ROB_tail_ptr]<=1;
                 RS_Mul_Instr[RS_Mul_count]<=pr_instr;
+                RS_Mul_PC[RS_Mul_count]<=Decode_PC;
                 RS_Mul_busy[RS_Mul_count]<=1'b1;
                 RS_Mul_Dest_tag[RS_Mul_count]<=ROB_tail_ptr;
-                RAT[pr_rd]<=ROB_tail_ptr;
-                if(RAT[pr_rs1]===3'bxxx)
+                RAT[pr_rd]<={1'b0, ROB_tail_ptr};
+                if(RAT[pr_rs1]==4'b1000)
                   begin
                    RS_Mul_S1_value[RS_Mul_count]<=Arch_reg[pr_rs1];
                    RS_Mul_S1_valid[RS_Mul_count]<=1'b1;
                   end
                 else 
                   begin  
-                   RS_Mul_S1_tag[RS_Mul_count]<=RAT[pr_rs1];
+                   RS_Mul_S1_tag[RS_Mul_count]<=RAT[pr_rs1][2:0];
                    RS_Mul_S1_valid[RS_Mul_count]<=1'b0;
                   end 
-                if(RAT[pr_rs2]===3'bxxx) 
+                if(RAT[pr_rs2]==4'b1000) 
                   begin  
                    RS_Mul_S2_value[RS_Mul_count]<=Arch_reg[pr_rs2];
                    RS_Mul_S2_valid[RS_Mul_count]<=1'b1;
                   end
                 else
                   begin   
-                   RS_Mul_S2_tag[RS_Mul_count]<=RAT[pr_rs2];
+                   RS_Mul_S2_tag[RS_Mul_count]<=RAT[pr_rs2][2:0];
                    RS_Mul_S2_valid[RS_Mul_count]<=1'b0;
                   end
                 ROB_tail_ptr<=ROB_tail_ptr+3'b001;  
@@ -383,6 +422,7 @@ reg [31:0] pr_sv1, pr_Add_Sub_sv1,pr_Add_Sub_sv2,pr_Mul_Div_sv1,pr_Mul_Div_sv2; 
 reg [2:0] pr_LD_tag, pr_Add_Sub_tag, pr_Mul_Div_tag;
 reg [11:0] pr_offset;
 reg [2:0] pr_LD_Instr, pr_Add_Sub_Instr, pr_Mul_Instr, pr_Div_Instr;
+reg [4:0] pr_Add_Sub_PC, pr_Mul_PC, pr_Div_PC;
 
 always@(posedge clk)          //****ALARM: Priority for instructions issue has not been set properly!
 begin
@@ -448,10 +488,13 @@ begin
         pr_Mul_Div_sv1<=RS_Mul_S1_value[0];
         pr_Mul_Div_sv2<=RS_Mul_S2_value[0];
         pr_Mul_Div_tag<=RS_Mul_Dest_tag[0];
-        if(RS_Mul_Instr[0]==MUL)
-          pr_Mul_Instr<=RS_Mul_Instr[0];
-        else
-          pr_Div_Instr<=RS_Mul_Instr[0];
+        if(RS_Mul_Instr[0]==MUL) begin
+            pr_Mul_Instr<=RS_Mul_Instr[0];
+            pr_Mul_PC<=RS_Mul_PC[0];
+        end else begin
+            pr_Div_Instr<=RS_Mul_Instr[0];
+            pr_Div_PC<=RS_Mul_PC[0];
+        end    
            
         RS_Mul_S1_value[0]<=32'hx;
         RS_Mul_S2_value[0]<=32'hx;
@@ -466,10 +509,13 @@ begin
         pr_Mul_Div_sv1<=RS_Mul_S1_value[1];
         pr_Mul_Div_sv2<=RS_Mul_S2_value[1];
         pr_Mul_Div_tag<=RS_Mul_Dest_tag[1];
-        if(RS_Mul_Instr[1]==MUL)
-          pr_Mul_Instr<=RS_Mul_Instr[1];
-        else
-          pr_Div_Instr<=RS_Mul_Instr[1];
+        if(RS_Mul_Instr[1]==MUL) begin 
+            pr_Mul_Instr<=RS_Mul_Instr[1];
+            pr_Mul_PC<=RS_Mul_PC[1];
+        end else begin 
+            pr_Div_Instr<=RS_Mul_Instr[1];
+            pr_Div_PC<=RS_Mul_PC[1];
+        end
          
         RS_Mul_S1_value[1]<=32'hx;
         RS_Mul_S2_value[1]<=32'hx;
@@ -484,10 +530,13 @@ begin
         pr_Mul_Div_sv1<=RS_Mul_S1_value[2];
         pr_Mul_Div_sv2<=RS_Mul_S2_value[2];
         pr_Mul_Div_tag<=RS_Mul_Dest_tag[2];
-        if(RS_Mul_Instr[2]==MUL)
-          pr_Mul_Instr<=RS_Mul_Instr[2];
-        else
-          pr_Div_Instr<=RS_Mul_Instr[2];
+        if(RS_Mul_Instr[2]==MUL) begin 
+            pr_Mul_Instr<=RS_Mul_Instr[2];
+            pr_Mul_PC<=RS_Mul_PC[2];
+        end else begin 
+            pr_Div_Instr<=RS_Mul_Instr[2];
+            pr_Div_PC<=RS_Mul_PC[2];
+        end
          
         RS_Mul_S1_value[2]<=32'hx;
         RS_Mul_S2_value[2]<=32'hx;
@@ -502,10 +551,13 @@ begin
         pr_Mul_Div_sv1<=RS_Mul_S1_value[3];
         pr_Mul_Div_sv2<=RS_Mul_S2_value[3];
         pr_Mul_Div_tag<=RS_Mul_Dest_tag[3];
-        if(RS_Mul_Instr[3]==MUL)
-          pr_Mul_Instr<=RS_Mul_Instr[3];
-        else
-          pr_Div_Instr<=RS_Mul_Instr[3];
+        if(RS_Mul_Instr[3]==MUL) begin 
+            pr_Mul_Instr<=RS_Mul_Instr[3];
+            pr_Mul_PC<=RS_Mul_PC[3];
+        end else begin
+            pr_Div_Instr<=RS_Mul_Instr[3];
+            pr_Div_PC<=RS_Mul_PC[3];
+        end
          
         RS_Mul_S1_value[3]<=32'hx;
         RS_Mul_S2_value[3]<=32'hx;
@@ -522,6 +574,7 @@ begin
         pr_Add_Sub_sv2<=RS_Add_S2_value[0];
         pr_Add_Sub_tag<=RS_Add_Dest_tag[0];
         pr_Add_Sub_Instr<=RS_Add_Instr[0];
+        pr_Add_Sub_PC<=RS_Add_PC[0];
          
         RS_Add_S1_value[0]<=32'hx;
         RS_Add_S2_value[0]<=32'hx;
@@ -537,6 +590,7 @@ begin
         pr_Add_Sub_sv2<=RS_Add_S2_value[1];
         pr_Add_Sub_tag<=RS_Add_Dest_tag[1];
         pr_Add_Sub_Instr<=RS_Add_Instr[1];
+        pr_Add_Sub_PC<=RS_Add_PC[1];        
          
         RS_Add_S1_value[1]<=32'hx;
         RS_Add_S2_value[1]<=32'hx;
@@ -552,6 +606,7 @@ begin
         pr_Add_Sub_sv2<=RS_Add_S2_value[2];
         pr_Add_Sub_tag<=RS_Add_Dest_tag[2];
         pr_Add_Sub_Instr<=RS_Add_Instr[2];
+        pr_Add_Sub_PC<=RS_Add_PC[2];
          
         RS_Add_S1_value[2]<=32'hx;
         RS_Add_S2_value[2]<=32'hx;
@@ -567,6 +622,7 @@ begin
         pr_Add_Sub_sv2<=RS_Add_S2_value[3];
         pr_Add_Sub_tag<=RS_Add_Dest_tag[3];
         pr_Add_Sub_Instr<=RS_Add_Instr[3];
+        pr_Add_Sub_PC<=RS_Add_PC[3];
          
         RS_Add_S1_value[3]<=32'hx;
         RS_Add_S2_value[3]<=32'hx;
@@ -583,6 +639,7 @@ end
 reg [31:0] pr_Add_Sub_result, pr_Mul_Div_result, pr_LD_result;
 reg [2:0] pr_Add_Sub_Tag, pr_Mul_Div_Tag, pr_LD_Tag;
 reg pr_Add_Sub_result_valid, pr_Mul_Div_result_valid, pr_LD_result_valid;
+reg [4:0] pr_Add_Sub_result_PC, pr_Mul_Div_result_PC;
 
 reg [31:0] Mem [1:32];
 reg [31:0] EAD;
@@ -638,7 +695,8 @@ begin
           add1=pr_Add_Sub_sv1; add2=pr_Add_Sub_sv2;
           pr_Add_Sub_result <= add1+add2;
           pr_Add_Sub_result_valid<=1;
-          add1<=32'hx; add2<=32'hx;
+          pr_Add_Sub_result_PC<=pr_Add_Sub_PC;
+          add1=32'hx; add2=32'hx;
           pr_Add_Sub_Tag<=pr_Add_Sub_tag;
           pr_Add_Sub_Instr<=3'bxxx;
       end 
@@ -648,7 +706,8 @@ begin
           sub1=pr_Add_Sub_sv1; sub2=pr_Add_Sub_sv2;
           pr_Add_Sub_result<= sub1 - sub2;
           pr_Add_Sub_result_valid<=1;
-          sub1<=32'hx; sub2<=32'hx;
+          pr_Add_Sub_result_PC<=pr_Add_Sub_PC;
+          sub1=32'hx; sub2=32'hx;
           pr_Add_Sub_Tag<=pr_Add_Sub_tag;
           pr_Add_Sub_Instr<=3'bxxx;
       end 
@@ -658,9 +717,10 @@ begin
           mul1= pr_Mul_Div_sv1; mul2=pr_Mul_Div_sv2;
           //Shift_Mul[31:0]<= mul1 * mul2;
           pr_Mul_Div_result<=mul1*mul2;
-          mul1<=32'hx; mul2<=32'hx;
+          mul1=32'hx; mul2=32'hx;
           pr_Mul_Div_Tag<=pr_Mul_Div_tag;
           pr_Mul_Div_result_valid<=1;
+          pr_Mul_Div_result_PC<=pr_Mul_PC;
           //Shift_Mul_tag [2:0] <= pr_Mul_Div_tag;
           //Shift_Mul_valid[0]<=1'b1;
           pr_Mul_Instr<=3'bxxx;
@@ -679,7 +739,8 @@ begin
           pr_Mul_Div_result<=div1/div2;
           pr_Mul_Div_Tag<=pr_Mul_Div_tag;
           pr_Mul_Div_result_valid<=1;
-          div1<=32'hx; div2<=32'hx;
+          pr_Mul_Div_result_PC<=pr_Div_PC;
+          div1=32'hx; div2=32'hx;
          // Shift_Div_tag [2:0] <= pr_Mul_Div_tag;
           //Shift_Div_valid[0]<=1'b1;
           pr_Div_Instr<=3'bxxx;
@@ -750,6 +811,8 @@ end*/
 
 //---------------------------------------------------------WRITE BACK STAGE--------------------------------------------------------------
 
+reg [4:0] WB_Add_Sub_PC, WB_Mul_Div_PC;
+
 always@(posedge clk)
 begin
     if(pr_LD_result_valid==1)
@@ -759,6 +822,7 @@ begin
         if(RS_Add_S1_tag[0]==pr_LD_Tag)
         begin
             RS_Add_S1_value[0]<=pr_LD_result;
+            $display("@%d: Trigerred in WB: here", counter);
             RS_Add_S1_valid[0]<=1;
             RS_Add_S1_tag[0]<=3'bxxx; 
         end
@@ -883,6 +947,7 @@ begin
         ROB_Value[pr_Add_Sub_Tag]<=pr_Add_Sub_result;
         ROB_valid[pr_Add_Sub_Tag]<=1; 
         pr_Add_Sub_result_valid<=0;
+        WB_Add_Sub_PC<=pr_Add_Sub_result_PC;
         if(RS_Add_S1_tag[0]==pr_Add_Sub_Tag)
         begin
             RS_Add_S1_value[0]<=pr_Add_Sub_result;
@@ -1015,6 +1080,7 @@ begin
     begin
         ROB_Value[pr_Mul_Div_Tag]<=pr_Mul_Div_result;
         ROB_valid[pr_Mul_Div_Tag]<=1; 
+        WB_Mul_Div_PC<=pr_Mul_Div_result_PC;
         if(RS_Add_S1_tag[0]==pr_Mul_Div_Tag)
         begin
             RS_Add_S1_value[0]<=pr_Mul_Div_result;
@@ -1146,22 +1212,29 @@ end
 
 //------------------------------------------------------------COMMIT STAGE-------------------------------------------------------------------
 
+reg [4:0] Commit_PC;
+
 always@(posedge clk)
 begin
     if(ROB_valid[ROB_head_ptr]==1)
     begin
+        Commit_PC<=ROB_PC[ROB_head_ptr];
         Arch_reg[ROB_Dest[ROB_head_ptr]]<=ROB_Value[ROB_head_ptr];
-        if(RAT[ROB_Dest[ROB_head_ptr]]==ROB_head_ptr)
-          RAT[ROB_Dest[ROB_head_ptr]]<=3'bxxx;
+        if(RAT[ROB_Dest[ROB_head_ptr]]=={1'b0, ROB_head_ptr})
+          RAT[ROB_Dest[ROB_head_ptr]]<=4'b1000;
 
-        ROB_Instr[ROB_head_ptr]<=3'bxxx;
+        ROB_Instr[ROB_head_ptr]<=3'b000;
         ROB_Value[ROB_head_ptr]<=32'bx;
         ROB_Dest[ROB_head_ptr]<=5'bx;
         ROB_busy[ROB_head_ptr]<=0;
         ROB_valid[ROB_head_ptr]<=0;
         ROB_head_ptr<=ROB_head_ptr+1;  
-    end    
+    end
 end
+
+
+`include "formal.v"
+
 
 endmodule
 

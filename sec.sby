@@ -1,0 +1,13 @@
+[options]
+mode prove
+depth 11
+
+[engines]
+smtbmc boolector
+
+[script]
+read -formal Tomasulo.v
+prep -top Tomasulo
+
+[files]
+Tomasulo.v
