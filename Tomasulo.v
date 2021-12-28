@@ -28,13 +28,16 @@ initial
 begin
     counter = 0;
 
-    memory[0] = 32'h002200b3;
-    memory[1] = 32'h002200b3;
-    memory[2] = 32'h002200b3;
-    memory[3] = 32'h002200b3;
-    memory[4] = 32'h002200b3;
-    memory[5] = 32'h002200b3;
-    memory[6] = 32'h002200b3;
+    memory[0] = 32'h002200b3; // R1
+    memory[1] = 32'h00120133; // R2
+    memory[2] = 32'h00520333; // R6
+    memory[3] = 32'h006202b3; // R5
+    // memory[1] = 32'h002200b3;
+    // memory[2] = 32'h002200b3;
+    // memory[3] = 32'h00120133;
+    // memory[4] = 32'h002200b3;
+    // memory[5] = 32'h00120133;
+    // memory[6] = 32'h002200b3;
     // 000000000000 00010 010 00011 0000011
     // memory[0]=32'h00012183;           //Instructions stored in Main Memory
     // memory[1]=32'h0241c133;
@@ -42,7 +45,8 @@ begin
     // memory[3]=32'h008381b3;
     // memory[4]=32'h023080b3;
     // memory[5]=32'h40508233;
-    // 0000000 00010 00100 000 00001 0110011
+    // ADD R1,R4,R2:    0000000 00010 00100 000 00001 0110011
+    // ADD R2,R4,R1:    0000000 00001 00100 000 00010 0110011
     // memory[6]=32'h002200b3;    
 end
 
@@ -64,16 +68,18 @@ begin
                 // info: PC<=PC+4;           //****ALARM: PC keeps on incrementing even if new instruction is not being fetched
                 // x<=x+1;
             // end
-            if (x != 6) begin
-                PC<=PC+4;
+            PC<=PC+4;
+            if (x != 3) begin
                 x=x+1;
             end else begin
-                PC<=0;
+                // PC<=0;
                 x=0;
             end
         end
-    else
-        pr_instr_fetch<=32'bx;  
+    else begin
+        // pr_instr_fetch<=32'bx;  
+        pr_instr_fetch<=memory[x];
+    end
 end 
 
 //-----------------------------------------------------DECODE STAGE---------------------------------------------------------
@@ -93,8 +99,8 @@ parameter DIV = 3'b100;
 
 always@(posedge clk)
 begin
-   if(stall_flag==0)
-   begin
+//    if(stall_flag==0)
+//    begin
     pr_opcode = pr_instr_fetch[6:0];   
     pr_funct7 = pr_instr_fetch[31:25];
     pr_funct3 = pr_instr_fetch[14:12];
@@ -116,10 +122,10 @@ begin
        pr_instr<=DIV;
     else
        pr_instr<=3'b000;   
-    end
+    // end
    
-   else
-      pr_instr<=3'b000;
+//    else
+    //   pr_instr<=3'b000;
 
 end
 
@@ -257,10 +263,13 @@ begin
         end     
         else if(pr_instr==ADD)
         begin
-           if (RS_Add_busy[RS_Add_count]==1)
+           if (RS_Add_busy[RS_Add_count]==1) begin
               stall_flag=1;
+              RS_Add_count<=RS_Add_count+2'b01;
+           end
            else
              begin
+                stall_flag=0;
                 ROB_Instr[ROB_tail_ptr]<=pr_instr;
                 ROB_PC[ROB_tail_ptr]<=Decode_PC;
                 ROB_Dest[ROB_tail_ptr]<=pr_rd;
@@ -948,55 +957,55 @@ begin
         ROB_valid[pr_Add_Sub_Tag]<=1; 
         pr_Add_Sub_result_valid<=0;
         WB_Add_Sub_PC<=pr_Add_Sub_result_PC;
-        if(RS_Add_S1_tag[0]==pr_Add_Sub_Tag)
+        if(RS_Add_S1_tag[0]==pr_Add_Sub_Tag && RS_Add_busy[0] && !RS_Add_S1_valid[0])
         begin
             RS_Add_S1_value[0]<=pr_Add_Sub_result;
             RS_Add_S1_valid[0]<=1;
             RS_Add_S1_tag[0]<=3'bxxx;
         end
-        if(RS_Add_S2_tag[0]==pr_Add_Sub_Tag)
+        if(RS_Add_S2_tag[0]==pr_Add_Sub_Tag && RS_Add_busy[0] && !RS_Add_S2_valid[0])
         begin
             RS_Add_S2_value[0]<=pr_Add_Sub_result;
             RS_Add_S2_valid[0]<=1;
             RS_Add_S2_tag[0]<=3'bxxx;
         end
-        if(RS_Add_S1_tag[1]==pr_Add_Sub_Tag)
+        if(RS_Add_S1_tag[1]==pr_Add_Sub_Tag && RS_Add_busy[1] && !RS_Add_S1_valid[1])
         begin
             RS_Add_S1_value[1]<=pr_Add_Sub_result;
             RS_Add_S1_valid[1]<=1;
             RS_Add_S1_tag[1]<=3'bxxx;
         end
-        if(RS_Add_S2_tag[1]==pr_Add_Sub_Tag)
+        if(RS_Add_S2_tag[1]==pr_Add_Sub_Tag && RS_Add_busy[1] && !RS_Add_S2_valid[1])
         begin
             RS_Add_S2_value[1]<=pr_Add_Sub_result;
             RS_Add_S2_valid[1]<=1;
             RS_Add_S2_tag[1]<=3'bxxx;
         end
-        if(RS_Add_S1_tag[2]==pr_Add_Sub_Tag)
+        if(RS_Add_S1_tag[2]==pr_Add_Sub_Tag && RS_Add_busy[2] && !RS_Add_S1_valid[2])
         begin
             RS_Add_S1_value[2]<=pr_Add_Sub_result;
             RS_Add_S1_valid[2]<=1;
             RS_Add_S1_tag[2]<=3'bxxx;
         end
-        if(RS_Add_S1_tag[2]==pr_Add_Sub_Tag)
-        begin
-            RS_Add_S1_value[2]<=pr_Add_Sub_result;
-            RS_Add_S1_valid[2]<=1;
-            RS_Add_S1_tag[2]<=3'bxxx;
-        end
-        if(RS_Add_S2_tag[2]==pr_Add_Sub_Tag)
+        // if(RS_Add_S1_tag[2]==pr_Add_Sub_Tag && RS_Add_busy[2] && !RS_Add_S1_valid[2])
+        // begin
+        //     RS_Add_S1_value[2]<=pr_Add_Sub_result;
+        //     RS_Add_S1_valid[2]<=1;
+        //     RS_Add_S1_tag[2]<=3'bxxx;
+        // end
+        if(RS_Add_S2_tag[2]==pr_Add_Sub_Tag && RS_Add_busy[2] && !RS_Add_S2_valid[2])
         begin
             RS_Add_S2_value[2]<=pr_Add_Sub_result;
             RS_Add_S2_valid[2]<=1;
             RS_Add_S2_tag[2]<=3'bxxx;
         end
-        if(RS_Add_S1_tag[3]==pr_Add_Sub_Tag)
+        if(RS_Add_S1_tag[3]==pr_Add_Sub_Tag && RS_Add_busy[3] && !RS_Add_S1_valid[3])
         begin
             RS_Add_S1_value[3]<=pr_Add_Sub_result;
             RS_Add_S1_valid[3]<=1;
             RS_Add_S1_tag[3]<=3'bxxx;
         end
-        if(RS_Add_S2_tag[3]==pr_Add_Sub_Tag)
+        if(RS_Add_S2_tag[3]==pr_Add_Sub_Tag && RS_Add_busy[3] && !RS_Add_S2_valid[3])
         begin
             RS_Add_S2_value[3]<=pr_Add_Sub_result;
             RS_Add_S2_valid[3]<=1;
