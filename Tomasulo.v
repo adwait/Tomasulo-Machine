@@ -1229,8 +1229,8 @@ begin
     begin
         Commit_PC<=ROB_PC[ROB_head_ptr];
         Arch_reg[ROB_Dest[ROB_head_ptr]]<=ROB_Value[ROB_head_ptr];
-        if(RAT[ROB_Dest[ROB_head_ptr]]=={1'b0, ROB_head_ptr})
-          RAT[ROB_Dest[ROB_head_ptr]]<=4'b1000;
+        if(RAT[ROB_Dest[ROB_head_ptr]]=={1'b0, ROB_head_ptr} && (ROB_Dest[ROB_head_ptr]!=pr_rd || stall_flag))
+            RAT[ROB_Dest[ROB_head_ptr]]<=4'b1000;
 
         ROB_Instr[ROB_head_ptr]<=3'b000;
         ROB_Value[ROB_head_ptr]<=32'bx;
