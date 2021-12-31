@@ -499,9 +499,11 @@ begin
         pr_Mul_Div_tag<=RS_Mul_Dest_tag[0];
         if(RS_Mul_Instr[0]==MUL) begin
             pr_Mul_Instr<=RS_Mul_Instr[0];
+            pr_Div_Instr<=0;
             pr_Mul_PC<=RS_Mul_PC[0];
         end else begin
             pr_Div_Instr<=RS_Mul_Instr[0];
+            pr_Mul_Instr<=0;
             pr_Div_PC<=RS_Mul_PC[0];
         end    
            
@@ -520,9 +522,11 @@ begin
         pr_Mul_Div_tag<=RS_Mul_Dest_tag[1];
         if(RS_Mul_Instr[1]==MUL) begin 
             pr_Mul_Instr<=RS_Mul_Instr[1];
+            pr_Div_Instr<=0;
             pr_Mul_PC<=RS_Mul_PC[1];
         end else begin 
             pr_Div_Instr<=RS_Mul_Instr[1];
+            pr_Mul_Instr<=0;
             pr_Div_PC<=RS_Mul_PC[1];
         end
          
@@ -541,9 +545,11 @@ begin
         pr_Mul_Div_tag<=RS_Mul_Dest_tag[2];
         if(RS_Mul_Instr[2]==MUL) begin 
             pr_Mul_Instr<=RS_Mul_Instr[2];
+            pr_Div_Instr<=0;
             pr_Mul_PC<=RS_Mul_PC[2];
         end else begin 
             pr_Div_Instr<=RS_Mul_Instr[2];
+            pr_Mul_Instr<=0;
             pr_Div_PC<=RS_Mul_PC[2];
         end
          
@@ -562,9 +568,11 @@ begin
         pr_Mul_Div_tag<=RS_Mul_Dest_tag[3];
         if(RS_Mul_Instr[3]==MUL) begin 
             pr_Mul_Instr<=RS_Mul_Instr[3];
+            pr_Div_Instr<=0;
             pr_Mul_PC<=RS_Mul_PC[3];
         end else begin
             pr_Div_Instr<=RS_Mul_Instr[3];
+            pr_Mul_Instr<=0;
             pr_Div_PC<=RS_Mul_PC[3];
         end
          
@@ -582,7 +590,13 @@ begin
         pr_Add_Sub_sv1<=RS_Add_S1_value[0];
         pr_Add_Sub_sv2<=RS_Add_S2_value[0];
         pr_Add_Sub_tag<=RS_Add_Dest_tag[0];
-        pr_Add_Sub_Instr<=RS_Add_Instr[0];
+        if (pr_Add_Sub_Instr==ADD) begin
+            pr_Add_Sub_Instr<=RS_Add_Instr[0];
+            // pr_Add_Sub_Instr<=3'bxxx;
+        end else begin
+            pr_Add_Sub_Instr<=RS_Add_Instr[0];
+        end
+        
         pr_Add_Sub_PC<=RS_Add_PC[0];
          
         RS_Add_S1_value[0]<=32'hx;
@@ -598,7 +612,13 @@ begin
         pr_Add_Sub_sv1<=RS_Add_S1_value[1];
         pr_Add_Sub_sv2<=RS_Add_S2_value[1];
         pr_Add_Sub_tag<=RS_Add_Dest_tag[1];
-        pr_Add_Sub_Instr<=RS_Add_Instr[1];
+        if (pr_Add_Sub_Instr==ADD) begin
+            pr_Add_Sub_Instr<=RS_Add_Instr[1];
+            // pr_Add_Sub_Instr<=3'bxxx;
+        end else begin
+            pr_Add_Sub_Instr<=RS_Add_Instr[1];
+        end
+        
         pr_Add_Sub_PC<=RS_Add_PC[1];        
          
         RS_Add_S1_value[1]<=32'hx;
@@ -614,7 +634,13 @@ begin
         pr_Add_Sub_sv1<=RS_Add_S1_value[2];
         pr_Add_Sub_sv2<=RS_Add_S2_value[2];
         pr_Add_Sub_tag<=RS_Add_Dest_tag[2];
-        pr_Add_Sub_Instr<=RS_Add_Instr[2];
+        if (pr_Add_Sub_Instr==ADD) begin
+            pr_Add_Sub_Instr<=RS_Add_Instr[2];
+            // pr_Add_Sub_Instr<=3'bxxx;
+        end else begin
+            pr_Add_Sub_Instr<=RS_Add_Instr[2];
+        end
+        
         pr_Add_Sub_PC<=RS_Add_PC[2];
          
         RS_Add_S1_value[2]<=32'hx;
@@ -630,7 +656,12 @@ begin
         pr_Add_Sub_sv1<=RS_Add_S1_value[3];
         pr_Add_Sub_sv2<=RS_Add_S2_value[3];
         pr_Add_Sub_tag<=RS_Add_Dest_tag[3];
-        pr_Add_Sub_Instr<=RS_Add_Instr[3];
+        if (pr_Add_Sub_Instr==ADD) begin
+            pr_Add_Sub_Instr<=RS_Add_Instr[3];
+            // pr_Add_Sub_Instr<=3'bxxx;
+        end else begin
+            pr_Add_Sub_Instr<=RS_Add_Instr[3];
+        end
         pr_Add_Sub_PC<=RS_Add_PC[3];
          
         RS_Add_S1_value[3]<=32'hx;
@@ -690,7 +721,7 @@ begin
         //Shift_LD_ST[31:0] <= Mem[EAD[4:0]];
         //Shift_LD_ST_tag[2:0] <= pr_LD_tag;
         //Shift_LD_ST_valid[0]<=1'b1;    
-        pr_LD_Instr<=3'bxxx;
+        // pr_LD_Instr<=3'bxxx;
       end
     /*else
         begin
@@ -718,7 +749,7 @@ begin
           pr_Add_Sub_result_PC<=pr_Add_Sub_PC;
           sub1=32'hx; sub2=32'hx;
           pr_Add_Sub_Tag<=pr_Add_Sub_tag;
-          pr_Add_Sub_Instr<=3'bxxx;
+            // pr_Add_Sub_Instr<=3'bxxx;
       end 
 
     if(pr_Mul_Instr==MUL)
@@ -732,7 +763,7 @@ begin
           pr_Mul_Div_result_PC<=pr_Mul_PC;
           //Shift_Mul_tag [2:0] <= pr_Mul_Div_tag;
           //Shift_Mul_valid[0]<=1'b1;
-          pr_Mul_Instr<=3'bxxx;
+        //   pr_Mul_Instr<=3'bxxx;
       end  
    /* else
        begin
@@ -752,7 +783,7 @@ begin
           div1=32'hx; div2=32'hx;
          // Shift_Div_tag [2:0] <= pr_Mul_Div_tag;
           //Shift_Div_valid[0]<=1'b1;
-          pr_Div_Instr<=3'bxxx;
+        //   pr_Div_Instr<=3'bxxx;
       end 
    /* else
        begin
@@ -1234,7 +1265,7 @@ begin
 
         ROB_Instr[ROB_head_ptr]<=3'b000;
         ROB_Value[ROB_head_ptr]<=32'bx;
-        ROB_Dest[ROB_head_ptr]<=5'bx;
+        // ROB_Dest[ROB_head_ptr]<=5'bx;
         ROB_busy[ROB_head_ptr]<=0;
         ROB_valid[ROB_head_ptr]<=0;
         ROB_head_ptr<=ROB_head_ptr+1;  

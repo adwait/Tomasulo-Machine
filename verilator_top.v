@@ -20,18 +20,21 @@ module verilator_top (
     wire [4:0] Pr_rs1, Pr_rs2, Pr_rd;
     //wire [4:0] 
 
-    Tomasulo uut (clk);//(CLK,Pr_sv1,Pr_sv2,Pr_tag,Pr_offset,Pr_Instr);
-    // initial
-    // begin
-    //     CLK=1;
-    // end
+    reg reset;
+
+    Tomasulo uut (clk, reset);//(CLK,Pr_sv1,Pr_sv2,Pr_tag,Pr_offset,Pr_Instr);
+    initial
+    begin
+        reset=1;
+    end
     // always #5 CLK = ~CLK ;
 
     always @(posedge clk ) begin
         clk_counter <= clk_counter + 1;
-        if (clk_counter == 20) begin
+        if (clk_counter == 30) begin
             $finish;
-        end    
+        end  
+        reset <= 0;  
     end
 
     

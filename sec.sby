@@ -1,13 +1,14 @@
 [options]
-mode prove
-depth 11
+mode bmc
+depth 14
 
 [engines]
 smtbmc boolector
 
 [script]
-read -formal Tomasulo.v
+read -formal cleanTomasulo.v
 prep -top Tomasulo
 
 [files]
-Tomasulo.v
+cleanTomasulo.v
+formal.v

@@ -1,21 +1,21 @@
 [*]
 [*] GTKWave Analyzer v3.3.100 (w)1999-2019 BSI
-[*] Thu Dec 30 10:43:41 2021
+[*] Tue Dec 28 07:01:32 2021
 [*]
 [dumpfile] "\\wsl$\Ubuntu-18.04\home\adwait\Documents\vscale_bench\Tomasulo-Machine\output\test-1-out.verilator.vcd"
-[dumpfile_mtime] "Thu Dec 30 10:42:52 2021"
-[dumpfile_size] 33341
-[savefile] "\\wsl$\Ubuntu-18.04\home\adwait\Documents\vscale_bench\Tomasulo-Machine\gtkwave\working.gtkw"
-[timestart] 155
+[dumpfile_mtime] "Tue Dec 28 06:47:15 2021"
+[dumpfile_size] 37133
+[savefile] "\\wsl$\Ubuntu-18.04\home\adwait\Documents\vscale_bench\Tomasulo-Machine\gtkwave\bugfixed.gtkw"
+[timestart] 0
 [size] 1920 1017
 [pos] -1 -1
-*-6.540880 400 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+*-6.540880 762 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [treeopen] TOP.
 [treeopen] TOP.verilator_top.
 [sst_width] 197
-[signals_width] 222
+[signals_width] 304
 [sst_expanded] 1
-[sst_vpaned_height] 289
+[sst_vpaned_height] 567
 @22
 TOP.verilator_top.uut.counter[7:0]
 @28
@@ -40,12 +40,12 @@ TOP.verilator_top.uut.ROB_PC(4)[4:0]
 TOP.verilator_top.uut.ROB_PC(5)[4:0]
 TOP.verilator_top.uut.ROB_PC(6)[4:0]
 TOP.verilator_top.uut.ROB_PC(7)[4:0]
-TOP.verilator_top.uut.Commit_PC[4:0]
 @28
 TOP.verilator_top.uut.pr_instr[2:0]
 @22
 TOP.verilator_top.uut.pr_instr_fetch[31:0]
 @28
+TOP.verilator_top.uut.stall_flag
 TOP.verilator_top.uut.ROB_busy(0)
 TOP.verilator_top.uut.ROB_busy(1)
 TOP.verilator_top.uut.ROB_busy(2)
@@ -56,27 +56,42 @@ TOP.verilator_top.uut.ROB_busy(6)
 TOP.verilator_top.uut.ROB_busy(7)
 TOP.verilator_top.uut.ROB_tail_ptr[2:0]
 TOP.verilator_top.uut.ROB_head_ptr[2:0]
+TOP.verilator_top.uut.RS_Add_count[1:0]
 TOP.verilator_top.uut.RS_Add_busy(0)
 TOP.verilator_top.uut.RS_Add_busy(1)
 TOP.verilator_top.uut.RS_Add_busy(2)
 TOP.verilator_top.uut.RS_Add_busy(3)
+TOP.verilator_top.uut.RS_Add_S1_valid(0)
+TOP.verilator_top.uut.RS_Add_S1_valid(1)
+TOP.verilator_top.uut.RS_Add_S1_valid(2)
+TOP.verilator_top.uut.RS_Add_S1_valid(3)
+TOP.verilator_top.uut.RS_Add_S2_valid(0)
+TOP.verilator_top.uut.RS_Add_S2_valid(1)
+TOP.verilator_top.uut.RS_Add_S2_valid(2)
+TOP.verilator_top.uut.RS_Add_S2_valid(3)
+TOP.verilator_top.uut.RS_Add_S1_tag(0)[2:0]
+TOP.verilator_top.uut.RS_Add_S1_tag(1)[2:0]
+TOP.verilator_top.uut.RS_Add_S1_tag(2)[2:0]
+TOP.verilator_top.uut.RS_Add_S1_tag(3)[2:0]
+TOP.verilator_top.uut.RS_Add_S2_tag(0)[2:0]
+TOP.verilator_top.uut.RS_Add_S2_tag(1)[2:0]
+TOP.verilator_top.uut.RS_Add_S2_tag(2)[2:0]
+TOP.verilator_top.uut.RS_Add_S2_tag(3)[2:0]
+TOP.verilator_top.uut.pr_Add_Sub_Tag[2:0]
+TOP.verilator_top.uut.pr_Add_Sub_result_valid
 @22
 TOP.verilator_top.uut.pr_rs1[4:0]
-@28
-TOP.verilator_top.uut.RS_Add_count[1:0]
+TOP.verilator_top.uut.pr_rs2[4:0]
+TOP.verilator_top.uut.RAT(1)[3:0]
+TOP.verilator_top.uut.RAT(2)[3:0]
 @23
-TOP.verilator_top.uut.pr_Add_Sub_PC[4:0]
-@28
-TOP.verilator_top.uut.pr_Add_Sub_Instr[2:0]
+TOP.verilator_top.uut.RAT(6)[3:0]
 @22
+TOP.verilator_top.uut.RAT(5)[3:0]
+TOP.verilator_top.uut.RAT(4)[3:0]
 TOP.verilator_top.uut.pr_Add_Sub_sv1[31:0]
 TOP.verilator_top.uut.pr_Add_Sub_sv2[31:0]
 TOP.verilator_top.uut.RS_Add_S1_value(0)[31:0]
-@28
-TOP.verilator_top.uut.RS_Add_S1_valid(0)
-TOP.verilator_top.uut.RS_Add_S2_valid(0)
-@22
-TOP.verilator_top.uut.RAT(1)[3:0]
 TOP.verilator_top.uut.ROB_Value(0)[31:0]
 TOP.verilator_top.uut.ROB_Value(1)[31:0]
 TOP.verilator_top.uut.ROB_Value(2)[31:0]
@@ -84,6 +99,6 @@ TOP.verilator_top.uut.ROB_Value(3)[31:0]
 TOP.verilator_top.uut.ROB_Value(4)[31:0]
 TOP.verilator_top.uut.ROB_Value(5)[31:0]
 TOP.verilator_top.uut.ROB_Value(6)[31:0]
-TOP.verilator_top.uut.ROB_Value(6)[31:0]
+TOP.verilator_top.uut.ROB_Value(7)[31:0]
 [pattern_trace] 1
 [pattern_trace] 0

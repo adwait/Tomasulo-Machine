@@ -1,11 +1,11 @@
 [*]
 [*] GTKWave Analyzer v3.3.100 (w)1999-2019 BSI
-[*] Thu Dec 30 10:43:41 2021
+[*] Thu Dec 30 10:44:02 2021
 [*]
 [dumpfile] "\\wsl$\Ubuntu-18.04\home\adwait\Documents\vscale_bench\Tomasulo-Machine\output\test-1-out.verilator.vcd"
 [dumpfile_mtime] "Thu Dec 30 10:42:52 2021"
 [dumpfile_size] 33341
-[savefile] "\\wsl$\Ubuntu-18.04\home\adwait\Documents\vscale_bench\Tomasulo-Machine\gtkwave\working.gtkw"
+[savefile] "\\wsl$\Ubuntu-18.04\home\adwait\Documents\vscale_bench\Tomasulo-Machine\output\withoutx.gtkw"
 [timestart] 155
 [size] 1920 1017
 [pos] -1 -1

@@ -18,11 +18,13 @@ VERILATOR_OPTS = \
 	-Wno-UNUSED \
 	-Wno-BLKSEQ \
 	-Wno-UNOPTFLAT \
+	-Wno-DECLFILENAME \
 	--cc \
 	-I$(V_SRC_DIR) \
 	+1364-2001ext+v \
 	-Wno-fatal \
 	--Mdir sim \
+	--x-assign unique \
 	--trace \
 
 VERILATOR_MAKE_OPTS = OPT_FAST="-O3"
@@ -38,8 +40,12 @@ VERILATOR_MAKE_OPTS = OPT_FAST="-O3"
 
 # SIMV_OPTS = -k $(OUT_DIR)/ucli.key -q
 
+MY_DESIGN_SRCS = $(addprefix $(V_SRC_DIR)/, \
+	myTomasulo.v \
+)
+
 DESIGN_SRCS = $(addprefix $(V_SRC_DIR)/, \
-	Tomasulo.v \
+	cleanTomasulo.v \
 )
 
 # SIM_SRCS = $(addprefix $(V_SRC_DIR)/, \
@@ -95,6 +101,9 @@ $(SIM_DIR)/Vverilator_top: $(VERILATOR_TOP) $(SIM_SRCS) $(DESIGN_SRCS) $(VERILAT
 	$(VERILATOR) $(VERILATOR_OPTS) $(VERILATOR_TOP) $(SIM_SRCS) $(DESIGN_SRCS) --exe ../$(VERILATOR_CPP_TB)
 	cd sim; make $(VERILATOR_MAKE_OPTS) -f Vverilator_top.mk Vverilator_top__ALL.a
 	cd sim; make $(VERILATOR_MAKE_OPTS) -f Vverilator_top.mk Vverilator_top
+
+test1: verilator-sim
+	./run.sh output/test-1-out.verilator.vcd
 
 clean:
 	rm -rf $(SIM_DIR)/* $(OUT_DIR)/*
