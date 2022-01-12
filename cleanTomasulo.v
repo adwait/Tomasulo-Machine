@@ -107,7 +107,7 @@ reg [2:0] ROB_tail_ptr;                //ROB Tail Pointer
 reg [2:0] ROB_Instr [0:7];            //Defining ROB entries
 reg [4:0] ROB_Dest [0:7];
 reg [31:0] ROB_Value [0:7];
-reg ROB_busy [0:7];
+reg [7:0] ROB_busy;
 reg ROB_valid[0:7];
 reg [4:0] ROB_PC [0:7];
 
@@ -228,8 +228,8 @@ always @(posedge clk) begin
             
             // RAT resetting
             if ((RAT[ROB_Dest[ROB_head_ptr]]=={1'b0, ROB_head_ptr})  
-              // this is the bug
-              && (ROB_Dest[ROB_head_ptr]!=pr_rd || stall_flag)  
+                // this is the bug
+                && (ROB_Dest[ROB_head_ptr]!=pr_rd || stall_flag)  
             ) begin
                 RAT[ROB_Dest[ROB_head_ptr]]<=4'b1000;
                 // ! was pulled here

@@ -1,8 +1,9 @@
 [options]
-mode prove
+mode bmc
+depth 20
 
 [engines]
-abc pdr
+smtbmc boolector
 
 [script]
 read -formal cleanTomasulo.v
