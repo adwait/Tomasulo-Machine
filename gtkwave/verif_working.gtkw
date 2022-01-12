@@ -1,0 +1,72 @@
+[*]
+[*] GTKWave Analyzer v3.3.100 (w)1999-2019 BSI
+[*] Fri Dec 31 09:33:28 2021
+[*]
+[dumpfile] "\\wsl$\Ubuntu-18.04\home\adwait\Documents\vscale_bench\Tomasulo-Machine\sec\engine_0\trace.vcd"
+[dumpfile_mtime] "Fri Dec 31 07:58:58 2021"
+[dumpfile_size] 29759
+[savefile] "\\wsl$\Ubuntu-18.04\home\adwait\Documents\vscale_bench\Tomasulo-Machine\gtkwave\verif_working.gtkw"
+[timestart] 0
+[size] 1920 1017
+[pos] -1 -1
+*-4.940690 8 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[sst_width] 197
+[signals_width] 244
+[sst_expanded] 1
+[sst_vpaned_height] 290
+@28
+Tomasulo.clk
+Tomasulo.reset
+@22
+Tomasulo.PC[5:0]
+Tomasulo.Decode_PC[4:0]
+@28
+Tomasulo.stall_flag
+Tomasulo.pr_instr[2:0]
+Tomasulo.RS_Add_count[1:0]
+@22
+Tomasulo.RS_Add_PC<0>[4:0]
+Tomasulo.RS_Add_PC<1>[4:0]
+Tomasulo.RS_Add_PC<2>[4:0]
+Tomasulo.RS_Add_PC<3>[4:0]
+@28
+Tomasulo.RS_Add_busy<0>
+Tomasulo.RS_Add_busy<1>
+Tomasulo.RS_Add_busy<2>
+Tomasulo.RS_Add_busy<3>
+Tomasulo.ROB_head_ptr[2:0]
+Tomasulo.ROB_tail_ptr[2:0]
+@22
+Tomasulo.pr_Add_Sub_PC[4:0]
+@28
+Tomasulo.pr_Add_Sub_Instr[2:0]
+Tomasulo.ROB_busy<0>
+Tomasulo.ROB_busy<1>
+Tomasulo.ROB_busy<2>
+Tomasulo.ROB_busy<3>
+Tomasulo.ROB_busy<4>
+Tomasulo.ROB_busy<5>
+Tomasulo.ROB_busy<6>
+Tomasulo.ROB_busy<7>
+@22
+Tomasulo.ROB_Dest<0>[4:0]
+Tomasulo.ROB_Dest<1>[4:0]
+Tomasulo.ROB_Dest<2>[4:0]
+Tomasulo.ROB_Dest<3>[4:0]
+Tomasulo.ROB_Dest<4>[4:0]
+Tomasulo.ROB_Dest<5>[4:0]
+Tomasulo.ROB_Dest<6>[4:0]
+Tomasulo.ROB_Dest<7>[4:0]
+@28
+Tomasulo.ROB_valid<0>
+Tomasulo.ROB_valid<1>
+Tomasulo.ROB_valid<2>
+Tomasulo.ROB_valid<3>
+Tomasulo.ROB_valid<4>
+Tomasulo.ROB_valid<5>
+Tomasulo.ROB_valid<6>
+Tomasulo.pr_Add_Sub_result_valid
+@29
+Tomasulo.bad<1>
+[pattern_trace] 1
+[pattern_trace] 0

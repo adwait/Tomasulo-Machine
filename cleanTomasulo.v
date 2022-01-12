@@ -227,7 +227,10 @@ always @(posedge clk) begin
             ROB_head_ptr<=ROB_head_ptr+1;  
             
             // RAT resetting
-            if (RAT[ROB_Dest[ROB_head_ptr]]=={1'b0, ROB_head_ptr}) begin
+            if ((RAT[ROB_Dest[ROB_head_ptr]]=={1'b0, ROB_head_ptr})  
+              // this is the bug
+              && (ROB_Dest[ROB_head_ptr]!=pr_rd || stall_flag)  
+            ) begin
                 RAT[ROB_Dest[ROB_head_ptr]]<=4'b1000;
                 // ! was pulled here
                 // if ((pr_instr==ADD || pr_instr==SUB) && (RS_Add_busy[RS_Add_count] == 0)) begin
